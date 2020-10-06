@@ -1,0 +1,4 @@
+(coq.theory
+ (name Giskard)
+ (package coq-giskard)
+ (synopsis "Verified model of the Giskard consensus protocol in Coq"))

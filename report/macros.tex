@@ -1,0 +1,113 @@
+%%% macros.tex
+%%% Import packages, define utility commands and define macros
+
+%%%----------
+%%% Imports
+
+%%% Text Formatting
+\usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage[normalem]{ulem} % normalem do not replace \emph to underline
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{enumitem}
+\usepackage{xstring}
+
+%%% Reference, Citation and Link
+%\usepackage[linkcolor=black,hidelinks]{hyperref}
+%\usepackage{url}
+%\usepackage{breakurl}
+%\usepackage{cite}
+%\usepackage[numbers]{natbib}
+
+%%% Tables
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{ragged2e}
+\usepackage{colortbl}
+\usepackage{tabu}
+
+%%% Plots
+\usepackage{caption}
+\usepackage{subcaption}
+%\usepackage{subfloat}
+\usepackage{wrapfig}
+
+% Code
+\usepackage{listings}
+\fboxsep=0.8pt 
+%\usepackage{lstlinebgrd}
+
+% Tikz Figs
+\usepackage{tikz}
+%\usepackage{pgf-umlsd} % for flow diagram
+\usetikzlibrary{calc}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{positioning}
+\usetikzlibrary{automata}
+\usetikzlibrary{arrows}
+%\usetikzlibrary{shapes}
+
+%%% Miscellaneous
+%\usepackage[keeplastbox]{flushend} % balance the end of double column document
+\usepackage{pgf}
+\usepackage{datetime} % for getting current date time
+
+%%%----------
+%%% Utility Commands
+
+\newcommand{\XSpace}[1]{}
+\newcommand{\XComment}[1]{}
+\newcommand{\DefMacro}[2]{\expandafter\newcommand\csname rmk-#1\endcsname{#2}}
+\newcommand{\UseMacro}[1]{\csname rmk-#1\endcsname}
+
+\newcommand{\MyPara}[1]{\noindent\textbf{#1}:}
+\newcommand{\MyFinding}[1]{\noindent\textbf{Finding \##1}:}
+\newcommand{\MyParaOnly}[1]{\noindent\textbf{#1}}
+\newcommand{\reducedstrut}{\vrule width 0pt height .9\ht\strutbox depth .9\dp\strutbox\relax}
+\newcommand{\InputWithSpace}[1]{\bgroup\def\arraystretch{1.1}\input{#1}\egroup}
+\newcommand{\Code}[1]{{\ifmmode{\mathtt{#1}}\else$\mathtt{#1}$\fi}}
+\newcommand{\CodeIn}[1]{{\ifmmode{\mathtt{#1}}\else$\mathtt{#1}$\fi}}
+\newcommand{\CoqIn}[1]{\lstinline[language=Coq,basicstyle=\normalsize\ttfamily]{#1}}
+\newcommand{\CoqInSmall}[1]{\lstinline[language=Coq,basicstyle=\small\ttfamily]{#1}}
+\newcommand{\ColorBack}[1]{%
+  \begingroup
+  \setlength{\fboxsep}{0pt}%
+  \colorbox{purple!20}{\reducedstrut#1\/}%
+  \endgroup
+}
+
+% for table headers
+\newcommand{\specialcell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+\newcolumntype{R}[1]{>{\RaggedLeft\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+% for numbers (0~10) to words
+\newcommand{\numtoword}[1]{%
+\IfStrEqCase{#1}{{0}{zero}{1}{one}{2}{two}{3}{three}{4}{four}{5}{five}{6}{six}{7}{seven}{8}{eight}{9}{nine}{10}{ten}}[#1]}
+
+\input{lstcoq} % coq code
+
+%%%----------
+%%% Macros
+
+% MACROS HERE
+
+%%% Text
+\newcommand{\Title}{Verifying Safety of the Giskard Consensus Protocol in Coq}
+\newcommand{\ShortTitle}{\Title}
+
+\newcommand{\xcut}{\trimmed{}\xspace}
+
+% names of tools, languages, etc.
+\newcommand{\Gallina}{Gallina\xspace}
+\newcommand{\Ltac}{L$_{\mathit{tac}}$\xspace}
+
+%\newcommand{\mycheckmark}{$\mathbin{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;}$\xspace}
+\newcommand{\mycheckmark}{{\normalsize \checkmark}\xspace}
+\newcommand{\mycross}{$\mathbin{\tikz [x=1.4ex,y=1.4ex,line width=.2ex] \draw (0,0) -- (1,1) (0,1) -- (1,0);}$\xspace\xspace}

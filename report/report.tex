@@ -1,0 +1,586 @@
+\documentclass{easychair}
+
+\input{macros}
+
+\usepackage{doc}
+
+\title{\Title}
+
+\author{
+Elaine Li\inst{1}
+\and
+Karl Palmskog\inst{2}
+\and
+Mircea Sebe\inst{1}
+\and
+Grigore Ro{\c s}u\inst{1}
+}
+
+\institute{
+  Runtime Verification, Inc.,
+  Urbana, IL, USA\\
+  \email{\{elaine.li,mircea.sebe,grigore.rosu\}@runtimeverification.com}
+\and
+   KTH Royal Institute of Technology,
+   Stockholm, Sweden\\
+   \email{palmskog@acm.org}
+}
+
+\authorrunning{Li, Palmskog, Sebe, and Ro{\c s}u}
+
+\titlerunning{\ShortTitle}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The Giskard consensus protocol is used to validate transactions and computations in the PlatON network. In this paper, we describe a model of Giskard in the Coq proof assistant, and show how several key safety properties of the protocol are encoded and formally proved.
+\end{abstract}
+
+\section{Introduction}
+
+The PlatON network provides a platform for distributed transactions and computations~\cite{PlatON}. The network relies on the Giskard consensus protocol to reach agreement among participating nodes on which sets of transactions (blocks) to add to a distributed ledger (blockchain)~\cite{Giskard,GiskardSpec}.
+%
+Giskard is a three-phase consensus protocol in the partially synchronous mesh communication model. The protocol is designed to tolerate that up to one third of all participating nodes are Byzantine, i.e., behave adversarially. 
+
+Due to the exponentially many possible protocol scenarios that are possible in a distributed setting with delays and Byzantine faults, traditional techniques for establishing protocol safety, such as testing, are not able to universally guarantee safety properties of Giskard.
+
+In this paper, we describe a model of Giskard in the Coq proof assistant~\cite{CoqArt}, and how we used the model to state and formally verify several safety properties of Giskard, increasing the trustworthiness of the protocol. More specifically, we state and prove (1) prepare stage height injectivity, (2) precommit stage height injectivity, and (3) commit stage height injectivity. Thanks to the foundational type theory underpinning Coq, we are able to reason symbolically about all possible executions of Giskard, including those where nodes have adversarial behavior.
+
+\subsection{Scope of Formal Verification}
+Formal verification can only reduce the correctness properties of a model of a system to a set of underlying assumptions. As such, even when a verification process is successful and sound, it is possible that the model may be an incorrect representation of the system, and that the proven properties may be inadequate to capture system correctness. However, Coq and similar proof assistants based on a \emph{small trusted proof-checking kernel} provide strong guarantees about proofs, meaning there is very little doubt in a successful verification process outcome. This is in contrast to less rigorous verification methods which require users to trust large programs and theories that cannot be manually inspected and validated in detail with reasonable effort.
+
+\subsection{Organization and Trusted Base}
+The paper is organized as follows. Section~\ref{sec:background} provides brief background on Giskard and contrasts our verification approach in Coq with others for similar protocols in the literature.
+%
+Section~\ref{sec:encoding} describes the basic data and assumptions (parameters and axioms) that comprise our model of Giskard. These definitions are the substrate for stating and proving the safety properties of the protocol, and must be accepted to trust any verification results about the model. Section~\ref{sec:safety} describes how the correctness properties are encoded and surveys how the properties were proved. Note that besides our custom parameters and axioms, we also use the \emph{law of excluded middle} (\CoqIn{classic}) axiom from Coq's standard library in the formal proofs. Finally, Section~\ref{sec:conclusion} outlines some possible extensions to our Coq model and contextualizes the work.
+
+To trust our Coq proofs, it is necessary to understand the property encodings and affirm that they capture the intentions behind the protocol. On the other hand, since Coq's kernel is trustworthy, there is little need to understand the details of Coq \emph{proof scripts} (which build the formal proofs of properties when compiled by Coq) and are usually found between the keywords \CoqIn{Proof} and \CoqIn{Qed}. Our presentation here thus focuses on encodings of data and properties, and in providing \emph{intuitions} behind the formal proofs; interested readers are encouraged to obtain the code, which is available online~\cite{CoqGiskard}, and check it locally with Coq for additional certainty.
+
+\section{Background and Related Work}
+\label{sec:background}
+\subsection{The Giskard protocol}
+\label{sec:proto-overview}
+A rigorous definition of Giskard is available in related work~\cite{GiskardSpec}. Here, we only summarize the key details relevant to formal specification and verification.
+
+%Blocks in Giskard go through three stages: Prepare, Precommit and Commit. These stages are defined locally, with respect to a particular node and a particular view. The local definitions of these three stages are:
+%\begin{itemize}
+%    \item a block is in prepare stage in some local state s iff it has received quorum PrepareVote messages or a PrepareQC message in the current view or some previous view, and
+%    \item a block is in precommit stage in some local state s iff its child block is in prepare stage in s, and
+%    \item a block is in commit stage in some local state s iff its child block is in precommit stage in s.
+%\end{itemize}
+
+In Giskard, a block goes through three stages: Prepare, Precommit and Commit. The latter two block stages are defined in terms of its former: a block is in Precommit (respectively, Commit) stage if its parent block is in Prepare (respectively, Precommit) stage. Once a block reaches the Precommit and Commit stage, it is considered \emph{final}. Therefore, consensus in Giskard means that all participating nodes agree on a unique block at each height at the Commit stage. This in turns requires that all participating nodes agree on a unique block at each height at the Precommit stage, which requires that all participating nodes agree on a unique block at each height at the Prepare stage in a single view. In this paper, we focus on stating and proving these three safety properties in Coq.
+
+\subsection{Distributed systems verification in Coq}
+Verification of fault-tolerant distributed systems in Coq have been done in three principal ways.
+
+\MyPara{Distributed separation logic} This approach is used in the Disel~\cite{Sergey2018} and Aneris~\cite{Krogh2020} frameworks to reason about the safety properties of two-phase commit protocols. However, there is to our knowledge no application of these framework for establishing Byzantine fault tolerance.
+
+\MyPara{Lamport's happened-before relation} This approach is used by Rahli~et~al.~\cite{Rahli2018} to verify an implementation of the Practical Byzantine Fault Tolerance (PBFT) protocol in the Velisarios framework in Coq, using arbitrary local actions to capture adversarial behavior.
+
+\MyPara{Reasoning inductively on transition system relations} This approach is based on explicitly defining a transition system as a relation on global states and directly establishing properties of reachable states by induction. This is what we use here, and was also notably used in the verification of an implementation of the Raft distributed consensus protocol~\cite{Woos2016} in the Verdi framework in Coq~\cite{Wilcox2015}. However, Raft only provides tolerance to regular crash faults, not Byzantine node behavior. 
+
+P{\^{\i}}rlea and Sergey~\cite{Pirlea2018} modeled a generic blockchain system in Coq and prove agreement on a canonical blockchain for a system in quiescence, while abstracting from most consensus mechanism details. Closest to our work is the verified Coq model of the Algorand consensus protocol by Alturki et al.~\cite{Alturki2020}, which similarly abstracts from details on blocks and blockchains and captures adversarial behavior. However, the Algorand consensus protocol and Giskard use widely different assumptions on network behavior and message delivery, making the respective Coq models essentially incomparable.
+
+In a similar setting to ours, Alturki et al.~\cite{Gasper} proved correct in Coq a \emph{finality} mechanism for the Ethereum blockchain. Most recently, Thomsen and Spitters~\cite{Thomsen2020} verified safety and liveness properties in Coq of a model of a Nakamoto-style blockchain based on proof-of-stake which abstracts from details of the consensus mechanism.
+
+
+
+\section{Protocol Model and Coq Encoding}
+\label{sec:encoding}
+In this section, we outline our model of Giskard and its Coq encoding. We designed our model mainly to illuminate the safety properties of Giskard. Therefore, we elide many features of a real-world implementation of Giskard. To explain the Coq encoding, we provide fragments of code in Coq's Gallina specification language that are adapted from the complete Giskard Coq code~\cite{CoqGiskard}, but are (for presentation reasons) not always copied verbatim. For a full explanation of Gallina syntax, we recommend consulting the Coq manual~\cite{Gallina812} or other relevant literature~\cite{CoqArt}.
+%Rather, it selectively incorporates features of Giskard that are critical to consensus safety, and excludes or abstracts away the rest. 
+%However, it benefits from the flexibility offered by abstraction techniques in that it can be easily enriched to incorporate additional Giskard features, that may be relevant to other properties, such as liveness and communication efficiency. 
+
+\subsection{Basic Datatypes and Assumptions}
+In this section, we present the basic datatypes of Giskard, which we call \emph{parameters}, and their accompanying assumptions, which we call \emph{axioms}. Declaration of global parameters and axioms (using the synonymous keywords \CoqIn{Parameter} and \CoqIn{Axiom}) is a common and convenient abstraction mechanism in Coq. We use this mechanism to avoid specifying unnecessary details that are best left to an implementation of Giskard. However, there is no general guarantee in Coq that parameters and axioms can be instantiated. Hence, we have chosen a minimal set which we are confident can be instantiated with only modest effort. We also highlight some derived datatypes, such as messages and node state.
+
+\subsubsection{Participating nodes} 
+A static set of nodes participate in each round in Giskard, and perform actions such as proposing blocks, voting on blocks, broadcasting messages and requesting messages.
+Each node is associated with a unique identifier; we therefore represent participating nodes as a type equipped with decidable equality.
+
+\begin{lstlisting}[language=Coq]
+Parameters (node : Type) (node_eqb : node -> node -> bool).
+Axiom node_eqb_correct : forall n1 n2, node_eqb n1 n2 = true <-> n1 = n2.
+\end{lstlisting}
+
+We assume that the equality of all key Giskard parameters is decidable. Therefore, we omit future statements of decidable equality from all the parameters below. 
+
+We define a static set of participants in the protocol as a list of node identifiers.
+\begin{lstlisting}[language=Coq]
+Parameter participants : list node. 
+\end{lstlisting}
+
+\subsubsection{Quorums} 
+In order to express the Byzantine assumption that no more than two thirds of participating nodes are malicious, we need to formalize the notion of quorums. Giskard's definition of quorum is a property over a set of messages, which informally states that ``more than two thirds participating nodes have sent a certain kind of message for a certain block''. 
+
+We define a quorum and its complement over sets of nodes as abstract functions over lists of nodes paired with a specification which captures the critical properties they must satisfy. Many concrete implementations of the notion of quorum can therefore be used; our approach does not commit us to any particular one. 
+\begin{lstlisting}[language=Coq]
+Parameter has_at_least_two_thirdsb : list node -> bool.
+Definition has_at_least_two_thirds (l : list node) : Prop :=
+ has_at_least_two_thirdsb l = true.
+\end{lstlisting} 
+One important specification property for the functions above is that any superset of a quorum set must also be a quorum set. 
+\begin{lstlisting}[language=Coq]
+Axiom quorum_subset : forall lm1 lm2,
+ quorum lm1 -> (forall msg, In msg lm1 -> In msg lm2) -> quorum lm2.
+\end{lstlisting}
+Additionally, by the pigeonhole principle, any two quorum sets of nodes must have a common subset that contains at least one third of the nodes. 
+\begin{lstlisting}[language=Coq]
+Axiom intersection_property : forall (l1 l2 : list node),
+ has_at_least_two_thirds l1 -> has_at_least_two_thirds l2 ->
+ exists (l : list node), has_at_least_one_third l /\
+  forall (n : node), In n l -> In n l1 /\ In n l2.
+\end{lstlisting}
+We then define message-based quorum in terms of node-based quorum as follows. 
+\begin{lstlisting}[language=Coq]
+Definition quorum (lm : list message) : Prop :=
+ has_at_least_two_thirds (map get_sender lm).
+\end{lstlisting}
+
+Given an abstract parameter representing node honesty, we can then express the assumption that no more than one third of participating nodes are Byzantine as follows. 
+\begin{lstlisting}[language=Coq]
+Parameter honest_nodeb : node -> bool.
+Axiom evil_participants : not has_at_least_one_third
+ (filter (fun n => negb (honest_nodeb n)) participants).
+\end{lstlisting}
+
+We define honesty behaviorally using the state transition relation, i.e., a node is honest if it makes only valid, protocol-following transitions.
+
+\subsubsection{Blocks}
+The safety properties of Giskard are stated in terms of blocks rather than block trees or blockchains. Therefore, the assumptions that we require about blocks are much weaker than in other blockchain formalizations, such as Toychain~\cite{Pirlea2018}.
+
+\paragraph{Block parameters.}
+%
+We model blocks as an arbitrary Coq type with a special \emph{genesis block} as inhabitant. We equip all blocks with a height and an index.
+\begin{lstlisting}[language=Coq]
+Parameters (block : Type) (GenesisBlock : block).
+Parameters (b_height : block -> nat) (b_index : block -> nat).
+\end{lstlisting}
+We also assume blocks have decidable equality.
+\begin{lstlisting}[language=Coq]
+Parameter block_eqb : block -> block -> bool.
+Axiom block_eqb_correct : forall b1 b2, block_eqb b1 b2 = true <-> b1 = b2.
+\end{lstlisting}
+
+\paragraph{Block ancestry.}
+%
+In practice, block hashes are used primarily to associate a block with its parent. We capture this using a primitive \emph{parent block} relation on blocks that is defined by block generation, i.e., a block is the parent of any block that is generated based on it. 
+\begin{lstlisting}[language=Coq]
+Parameters (generate_new_block : block -> block) (parent_of : block -> block). 
+Axiom generate_new_block_parent : forall b, parent_of (generate_new_block b) = b.
+\end{lstlisting} 
+The parent block relation is also useful to determining block height: child block height is always parent block height plus one. 
+\begin{lstlisting}[language=Coq]
+Axiom parent_block_height : forall b, S (b_height (parent_of b)) = b_height b.
+\end{lstlisting} 
+
+In combination, these definitions allow for a block to have multiple children block at the same height, so that we can model malicious participating nodes potentially proposing multiple conflicting blocks at the same height.
+
+\paragraph{Last blocks.}
+%
+A certain kind of block has special status in the Giskard, namely, the last block produced in a view. While the specific number of blocks produced per view may vary per round, there is always a unique last block for each view, and nodes are always able to recognize it when they see it. Therefore, we model the property of being the last block as an abstract parameter on blocks. We model last block uniqueness again using block generation, by defining a special block generation function for last blocks. 
+\begin{lstlisting}[language=Coq] 
+Parameters (b_last : block -> bool) (generate_last_block : block -> block). 
+\end{lstlisting} 
+We express the necessary properties of these functions using axioms:
+\begin{lstlisting}[language=Coq]
+Axiom about_generate_last_block : forall b, b_last (generate_last_block b) = true /\
+ b_height (generate_last_block b) = S (b_height b).
+Axiom about_non_last_block : forall b, b_last (generate_new_block b) = false.
+\end{lstlisting} 
+
+\subsection{Messages}
+We use a Coq inductive type to the define the five Giskard message types.
+\begin{lstlisting}[language=Coq]
+Inductive message_type := 
+| PrepareBlock | PrepareVote | ViewChange | PrepareQC | ViewChangeQC.
+\end{lstlisting}
+We then define a message as a Coq record:
+\begin{lstlisting}[language=Coq]
+Record message := mkMessage { get_message_type : message_type;  get_view : nat;
+ get_sender : node; get_block : block; get_piggyback_block : block }.
+\end{lstlisting}
+According to this definition, a Giskard message consists of a message type (\CoqIn{get_message_type}), a view as a natural number (\CoqIn{get_view}), the node identifier of the message sender (\CoqIn{get_sender}), a primary block (\CoqIn{get_block}) and a piggyback block (\CoqIn{get_piggyback_block}).
+
+While all Giskard protocol messages contain at least one block, some contain additional information in the form of aggregated signatures of other messages. The signature effectively stands in for the messages themselves: if a node receives a message $m$ containing an aggregated signature $sig$ created using a set of message signatures $\{sig_{m_1}, sig_{m_2}, ..., sig_{m_n}\}$, the node behaves as though it has received the set of messages $\{m, m_1, m_2, ..., m_n\}$. We include an additional message field to model this ``message carrying'' behavior without explicitly resorting to, e.g., recursive message definitions to model messages containing other messages.
+
+\subsection{Local states}
+We define a record type \CoqIn{NState} that contains all the data available to a protocol participant during execution. 
+\begin{lstlisting}[language=Coq]
+Record NState := mkNState { node_view : nat; node_id : node; 
+ in_messages : list message; counting_messages : list message; 
+ out_messages : list message; timeout : bool }.
+\end{lstlisting}
+In this definition, \CoqIn{node_view} is the current view number, \CoqIn{node_id} is the unique node identifier, \CoqIn{in_messages} is a message buffer containing all delivered messages that have been processed, \CoqIn{out_messages} is a message buffer containing all sent messages, and \CoqIn{timeout} is a flag indicating whether the current view has timed out.
+%
+Given a node identifier \CoqIn{n}, we then define the initial state of a node:
+\begin{lstlisting}[language=Coq]
+Definition NState_init (n : node) : NState := mkNState 0 n [] [] [] false.
+\end{lstlisting}
+
+\subsection{Local state transitions} 
+The actions of a participating node in the protocol mainly consist of receiving and broadcasting messages. We model node behavior using local state transitions, and in turn define protocol-following node behavior as valid local state transitions that are a relation over 1) current state, 2) incoming message, 3) outgoing message(s), and 4) updated state. We refer to 1) and 4) as pre-state and post-state, respectively.
+
+To represent local transitions abstractly, we define labels for them as a Coq inductive type:
+\begin{lstlisting}[language=Coq]
+Inductive NState_transition_type := 
+| propose_block_init_type
+| discard_view_invalid_type
+| process_PrepareBlock_duplicate_type 
+| process_PrepareBlock_pending_vote_type
+| process_PrepareBlock_vote_type 
+| process_PrepareVote_vote_type
+| process_PrepareVote_wait_type
+| process_PrepareQC_last_block_new_proposer_type
+| process_PrepareQC_last_block_type 
+| process_PrepareQC_non_last_block_type
+| process_ViewChange_quorum_new_proposer_type
+| process_ViewChange_pre_quorum_type 
+| process_ViewChangeQC_single_type
+| process_PrepareBlock_malicious_vote_type.
+\end{lstlisting}
+We then define one Coq predicate for each of the above local transition types. As an example, we show the full definition of the predicate corresponding to \CoqIn{process_PrepareBlock_vote_type}:
+\begin{lstlisting}[language=Coq,numbers=left,numberstyle=\footnotesize,escapechar=@]
+Definition process_PrepareBlock_vote (s s' : NState) (msg : message) 
+ (lm : list message) : Prop :=
+  s' = record_plural (process s msg) (pending_PrepareVote s msg) /\ @\label{pb:post-state}@
+  lm = pending_PrepareVote s msg /\  @\label{pb:broadcast}@
+  received s msg /\ @\label{pb:received}@
+  honest_node (node_id s) /\ @\label{pb:honest}@
+  get_message_type msg = PrepareBlock /\ @\label{pb:msg}@
+  view_valid s msg /\ @\label{pb:valid}@
+  timeout s = false /\ @\label{pb:timeout}@
+  prepare_stage s (parent_of (get_block msg)). @\label{pb:stage}@
+\end{lstlisting}
+This predicate defines a Giskard transition where a node votes for a block whose parent has reached Prepare stage.
+\begin{itemize}[leftmargin=*]
+\item Line~\ref{pb:post-state} defines the post-state: the node moves the incoming message from \CoqIn{in_messages} to \CoqIn{counting_messages}, and adds \CoqIn{pending_PrepareVote s msg} to its \CoqIn{out_messages} buffer to record as sent message history. 
+\item Line~\ref{pb:broadcast} defines the messages to be broadcast on the global network. 
+\item Line~\ref{pb:received} is included in all valid Giskard transitions, and states that the message is indeed received by the transition-making.
+\item Lines~\ref{pb:honest} and \ref{pb:valid} are included in all honest Giskard transitions, and state that the transition-making node is honest and the message was produced in the current view, and can be processed.
+\item Line~\ref{pb:msg} states that the message being processed is a \CoqIn{PrepareBlock} message, which ensures that suitable protocol actions are being taken. 
+\item Line~\ref{pb:timeout} is included in all PrepareBlock and PrepareVote-processing transitions -- nodes cannot process these messages once a timeout has occurred. 
+\item Line~\ref{pb:stage} states the condition for nodes to be able to vote for a block: its parent block must have reached Prepare stage in its local state.
+\end{itemize}
+
+\subsection{Global states}
+We define a Giskard global state as a tuple containing (1) a mapping of node identifiers to their states, and (2) a list of all messages ever sent over the network:
+\begin{lstlisting}[language=Coq]
+Definition GState : Type := (node -> NState) * list message.
+\end{lstlisting}
+We also define an \emph{initial state} that serves as the starting point of any protocol execution:
+\begin{lstlisting}[language=Coq]
+Definition GState_init : GState := (fun (n : node) => NState_init n, []).
+\end{lstlisting}
+In the following, we use the Coq standard library functions \CoqIn{fst} and \CoqIn{snd} to obtain the state mapping and the message lists from global states, respectively. For example, \CoqIn{snd GState_init} yields the empty list, i.e., \CoqIn{[]}.
+
+\subsection{Global state transitions}
+We define the global transition relation as a binary relation on global states. There are two kinds of transitions: \emph{process} steps and \emph{timeout} steps. In a process step, a single participating node performs some process (which may change its state) and broadcasts the resulting messages. In a timeout step, the timeout flags of all participating nodes are flipped. We represent these two steps as clauses (constructors) in a Coq inductive predicate:
+\begin{lstlisting}[language=Coq,numbers=left,numberstyle=\footnotesize,escapechar=@]
+Inductive GState_step : GState -> GState -> Prop :=
+| GState_step_process : forall (n : node) (process : NState_transition_type)
+  (msg : message) (lm : list message) (g g' : GState),
+   In n participants -> @\label{step:participants}@
+   get_transition process (fst g n) msg (fst g' n) lm -> @\label{step:process}@
+   g' = broadcast_messages g (fst g n) (fst g' n) lm -> @\label{step:messages}@
+   GState_step g g'
+| GState_step_timeout : forall (g g' : GState),
+    g' = ((fun n => if is_member n participants then @\label{step:flip-member}@
+        flip_timeout (fst g n) else fst g n), snd g) -> @\label{step:flip}@
+   GState_step g g'.
+\end{lstlisting}
+Intuitively, to take a process step according to this relation, the involved node must be a participant (line~\ref{step:participants}), the state and generated messages must be according to a local transition predicate (line~\ref{step:process}), and the updated global state \CoqIn{g'} must have the updated state and broadcasted messages (line~\ref{step:messages}). To take a timeout step, all participants (line~\ref{step:flip-member}) must have their timeout flags flipped in the updated state (line~\ref{step:flip}).
+
+\subsection{Protocol traces}
+
+To reason about executions of Giskard, we need to consider sequences of global states
+where each adjacent pair follows the global transition relation. We first define traces as functions from natural numbers to global states:
+\begin{lstlisting}[language=Coq]
+Definition GTrace : Type := nat -> GState.
+\end{lstlisting}
+Then, we define protocol traces that start from the initial global state and take steps from one natural number to its successor according to the transition relation:
+\begin{lstlisting}[language=Coq]
+Definition protocol_trace (tr : GTrace) : Prop :=
+  tr 0 = GState_init /\ forall n : nat, GState_step (tr n) (tr (S n)).
+\end{lstlisting}
+This definition is sufficient to allow us to establish protocol state invariants (i.e., safety properties) by induction on natural numbers.
+
+\section{Safety Properties and Proofs}
+\label{sec:safety}
+
+In this section, we define the three key safety properties of Giskard sketched in Section~\ref{sec:proto-overview} in Coq and outline their formal proofs. For more details on the the proofs and the helper lemmas they depend on, we refer the reader to the Coq code~\cite{CoqGiskard} and in particular to its generated HTML documentation, which makes cross-references easily accessible.
+
+\subsection{Prepare stage height injectivity}
+A block is considered to be at the Prepare stage for some node if it has received quorum \CoqIn{PrepareVote} messages or a \CoqIn{PrepareQC} message in the current view or some previous view. We first define the Prepare stage for some block for a particular view.
+\begin{lstlisting}[language=Coq]
+Definition vote_quorum_in_view (s : NState) (view : nat) (b : block) : Prop :=
+  quorum (processed_PrepareVote_in_view_about_block s view b).
+
+Definition PrepareQC_in_view (s : NState) (view : nat) (b : block) : Prop :=
+  exists msg : message, In msg (counting_messages s) /\
+    get_view msg = view /\
+    get_block msg = b /\
+    get_message_type msg = PrepareQC.
+
+Definition prepare_stage_in_view (s : NState) (view : nat) (b : block) : Prop :=
+  vote_quorum_in_view s view b \/ PrepareQC_in_view s view b.
+\end{lstlisting}
+We then define the Prepare stage as an existential proposition over view numbers:
+\begin{lstlisting}[language=Coq]
+Definition prepare_stage (s : NState) (b : block) :=
+  exists v', v' <= node_view s /\ prepare_stage_in_view s v' b.
+\end{lstlisting}
+
+\subsubsection{Property statement}
+The first safety property states that no two blocks of the same height can be at Prepare stage in the same view, i.e., that prepare stage block height is injective in the same view. This property differs from the following two in that it contains a view restriction as a premise. This premise is important because it is possible for multiple blocks at the same height to reach Prepare stage across different views, as we will see later in the case of abnormal view changes.
+\begin{lstlisting}[language=Coq]
+Definition prepare_stage_same_view_height_injective_statement :=
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (i : nat) (n m : node) (b1 b2 : block) (p : nat),
+      In n participants ->
+      In m participants ->
+      b1 <> b2 ->
+      prepare_stage_in_view (fst (tr i) n) p b1 -> 
+      prepare_stage_in_view (fst (tr i) m) p b2 ->      
+      b_height b1 = b_height b2 ->
+      False.
+\end{lstlisting}
+
+\subsubsection{Proof outline}
+Intuitively, the proof of this property follows directly from the definition of non-Byzantine/honest voting behavior: honest nodes cannot vote for two conflicting blocks during the same view. If two conflicting blocks reach prepare stage in the same view, then two quorums of at least 2/3 validators voted for each block. By the pigeonhole principle, there must exist a set of at least 1/3 validators who voted for both conflicting blocks and are therefore Byzantine/dishonest. By assumption, there are no more than 1/3 Byzantine/dishonest blocks. Therefore, we reach a contradiction (written \CoqIn{False} or \texttt{False} in Coq).
+
+We formalize the connection between more than 1/3 dishonest nodes and node-local premises using a series of intermediate facts. Because our fault model does not include the behavior of sending two \CoqIn{PrepareVote} messages for different blocks of the same height in the same view, we cannot make use of the premises directly. Instead, we make use of the fact that every node must have processed a \CoqIn{PrepareBlock} message in order to send a \CoqIn{PrepareVote} message. 
+\begin{lstlisting}[language=Coq]
+Lemma sent_PrepareVote_means_received_PrepareBlock :
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (n : node) (i : nat) (msg : message),
+      In n participants ->
+      In msg (out_messages (fst (tr i) n)) ->
+      get_message_type msg = PrepareVote ->
+      exists (msg' : message),
+        In msg' (counting_messages (fst (tr i) n)) /\
+        get_message_type msg' = PrepareBlock /\
+        get_block msg'= get_block msg /\
+        get_view msg' = get_view msg.
+\end{lstlisting}
+Next, we show that if there is evidence of two conflicting sent \CoqIn{PrepareVote} messages, there must also be evidence of two conflicting processed \CoqIn{PrepareBlock} messages.
+
+\begin{lstlisting}[language=Coq]
+Definition equivocating_in_state (s : NState) : Prop :=
+  exists (msg1 msg2 : message),
+    In msg1 (out_messages s) /\
+    In msg2 (out_messages s) /\
+    get_view msg1 = get_view msg2 /\
+    get_message_type msg1 = PrepareVote /\
+    get_message_type msg2 = PrepareVote /\
+    get_block msg1 <> get_block msg2 /\
+    b_height (get_block msg1) = b_height (get_block msg2).
+    
+Definition pre_equivocating_in_state (s : NState) : Prop :=
+  exists (msg1 msg2 : message),
+    In msg1 (counting_messages s) /\
+    In msg2 (counting_messages s) /\
+    get_view msg1 = get_view msg2 /\
+    get_message_type msg1 = PrepareBlock /\
+    get_message_type msg2 = PrepareBlock /\
+    get_block msg1 <> get_block msg2 /\
+    b_height (get_block msg1) = b_height (get_block msg2).
+    
+Lemma pre_local_means_local_evidence_of_equivocation :
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (n : node) (i : nat),
+      In n participants ->
+      equivocating_in_state (fst (tr i) n) ->
+      pre_equivocating_in_state (fst (tr i) n).
+\end{lstlisting}
+
+Because our fault model explicitly includes the behavior of processing two conflicting \CoqIn{PrepareBlock} messages, we can directly derive dishonesty from \CoqIn{pre_equivocating_in_state}. 
+\begin{lstlisting}[language=Coq]
+Lemma pre_local_evidence_of_equivocation :
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (n : node) (i : nat),
+      In n participants ->
+      pre_equivocating_in_state (fst (tr i) n) ->
+      ~ honest_node n.
+\end{lstlisting}
+We can then weaken it to derive dishonesty from \CoqIn{equivocating_in_state}. 
+\begin{lstlisting}[language=Coq]
+Lemma local_evidence_of_equivocation :
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (n : node) (i : nat),
+    In n participants ->
+    equivocating_in_state (fst (tr i) n) ->
+    not honest_node n.
+\end{lstlisting}
+\noindent
+Finally, the safety theorem is stated in terms of local views of two different nodes, whereas dishonesty is stated in terms of the behavior of one node. To bridge this gap, we leverage the global out message buffer, which can be seen as a ghost variable, to derive global evidence of dishonesty from local evidence of dishonesty, to simplify the proof. 
+\begin{lstlisting}[language=Coq]
+Lemma global_equivocating_local :
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (n : node) (i : nat),
+      In n participants ->
+      equivocating_in_global_state (tr i) n ->
+      equivocating_in_state (fst (tr i) n).
+\end{lstlisting}
+
+\subsection{Precommit stage height injectivity}
+A block is said to be at Precommit stage for some node if it is in Prepare stage and has a child block in Prepare stage. 
+\begin{lstlisting}[language=Coq]
+Definition precommit_stage (tr : GTrace) (i : nat) (n : node) (b : block) :=
+  exists b_child, parent_of b_child = b /\
+    prepare_stage (fst (tr i) n) b /\
+    prepare_stage (fst (tr i) n) b_child.
+\end{lstlisting}
+Note that this definition does not imply that the parent and child block received enough votes, i.e. \textit{reached} Prepare stage, in the same view. Neither does it imply that the parent or child block reached Prepare stage in node \CoqIn{n}'s current view. It only states that there exist two views, \CoqIn{v} and \CoqIn{v'}, that are less than or equal to the current view of node \CoqIn{n} in protocol state \CoqIn{i}, such that \CoqIn{b} and its child reached Prepare stage in \CoqIn{v} and \CoqIn{v'} respectively. From the fact that child blocks necessarily reach Prepare stage later than their parent blocks, we know that \CoqIn{v} must be less than or equal to \CoqIn{v'}. Therefore, denoting the current view of \CoqIn{n} as \CoqIn{v0}, the relation \CoqIn{v} $\leq$ \CoqIn{v'} $\leq$ \CoqIn{v0} always holds. 
+
+\subsubsection{Property statement}
+The second safety property states that no two blocks of the same height can be at Precommit stage, i.e., Precommit stage block height is injective. 
+\begin{lstlisting}[language=Coq]
+Definition precommit_stage_height_injective_statement :=
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (i : nat) (n m : node) (b1 b2 : block),
+      In n participants ->
+      In m participants ->
+      b1 <> b2 ->
+      precommit_stage tr i n b1 ->
+      precommit_stage tr i m b2 ->
+      b_height b1 = b_height b2 ->
+      False.
+\end{lstlisting}
+
+Precommit stage safety is significantly more complex than Prepare stage safety in the same view because while the latter only reasons about messages sent in one single view \CoqIn{p}, the former reasons about six potentially different views: 
+\begin{itemize}[leftmargin=*]
+    \item Node \CoqIn{n}'s current view \CoqIn{v_n = get_view (fst (tr i) n)}.
+    \item The view during which \CoqIn{b1} received enough votes and reached Prepare stage \CoqIn{v1}. 
+    \item The view during which \CoqIn{b1_child} received enough votes and reached Prepare stage \CoqIn{v1_child}.
+    \item Node \CoqIn{m}'s current view \CoqIn{v_m = get_view (fst (tr i) m)}.
+    \item The view during which \CoqIn{b2} received enough votes and reached Prepare stage \CoqIn{v2}. 
+    \item The view during which \CoqIn{b2_child} received enough votes and reached Prepare stage \CoqIn{v2_child}.  
+\end{itemize}
+
+A proof of Precommit stage safety involves case analysis on these six views, restricted by \CoqIn{v1 <= v1_child <= v_n} and \CoqIn{v2 <= v2_child <= v_m}.  
+
+\subsubsection{Proof outline}
+We state the lemmas in the Giskard specification~\cite{GiskardSpec}, and show that they are strong enough to establish all cases of Precommit stage safety. Similar to our Prepare stage proofs, we often leverage the global out message buffer as a ghost variable, and use global versions of local property statements, i.e., that depend on the global out message buffer rather than a specific node's local message buffers. We also favor the view-explicit Prepare stage definition over the general one, thus eliminating the need for existential quantifier elimination each time. 
+
+Lemma 1 in the specification~\cite{GiskardSpec} states that every \CoqIn{ViewChangeQC} message must contain either the highest or second highest Prepare stage block in its view. We first define maximum and minimum height Prepare stage block heights in a view. These definitions are global in that they look at all local Prepare stage blocks for all participating nodes, and therefore do not contain a node identifier \CoqIn{n} as an argument. 
+
+\begin{lstlisting}[language=Coq]
+Definition is_max_prepare_height_in_view_global (tr : GTrace) (i h p : nat) :=
+  (exists b, prepare_stage_in_view_global tr i b p /\ b_height b = h) /\
+  (forall b, prepare_stage_in_view_global tr i b p -> b_height b <= h).
+
+Definition is_min_prepare_height_in_view_global (tr : GTrace) (i h p : nat) :=
+  (exists b, prepare_stage_in_view_global tr i b p /\ b_height b = h) /\
+  (forall b, prepare_stage_in_view_global tr i b p -> b_height b >= h).
+\end{lstlisting}
+
+\noindent
+We rephrase Lemma 1 to state the first key property: for every lowest Prepare stage block in a view, its parent block must be either the highest or second-highest Prepare stage block of a past view. This property addresses not only abnormal view change cases in which the block contained in a \CoqIn{ViewChangeQC} message is produced upon in the new view, but also normal view change cases in which the last and highest block of the previous block is produced upon in the new view. 
+\begin{lstlisting}
+Definition prepare_stage_first_parent_highest_or_second_global :=
+  forall tr i, protocol_trace tr ->
+   forall b1 v1, is_min_prepare_height_in_view_global tr i (b_height b1) v1 ->
+    exists v', v' <= v1 /\
+  (is_max_prepare_height_in_view_global tr i (b_height (parent_of b1)) v' \/
+   is_max_prepare_height_in_view_global tr i (S (b_height (parent_of b1))) v').
+\end{lstlisting}
+
+\noindent
+The second key property, corresponding to Lemmas 2 and 3, states that Prepare stage block height increases as view number increases. Intuitively, this is because new blocks are proposed upon a block carried over from the previous view, either through normal or abnormal view change. The carryover block is at least the second highest block in the previous view, and therefore the first block of the next view is at least the height of the highest block in the previous view.
+\begin{lstlisting}[language=Coq]
+Definition prepare_stage_height_view_morphism_global :=
+  forall tr i, protocol_trace tr ->
+    forall b1 b2 v1 v2,
+      prepare_stage_in_view_global tr i b1 v1 ->
+      prepare_stage_in_view_global tr i b2 v2 ->
+      v1 <= v2 ->
+      b_height b1 <= b_height b2.
+\end{lstlisting}
+
+\noindent
+If we consider only non-last Prepare stage blocks in \CoqIn{v1}, we can strengthen the conclusion of \CoqIn{prepare_stage_height_view_morphism_global} from $\leq$ to $<$.
+\begin{lstlisting}
+Definition prepare_stage_height_view_morphism_global_non_last :=
+  forall tr i, protocol_trace tr ->
+    forall b1 b2 v1 v2,
+      prepare_stage_in_view_global tr i b1 v1 ->
+      prepare_stage_in_view_global tr i b2 v2 ->
+      not last_block b1 ->
+      v1 <= v2 ->
+      b_height b1 < b_height b2.
+\end{lstlisting}
+
+\noindent
+Finally, a block that has a child block in Prepare stage in the same view cannot be the last block of the view. Intuitively, this is true by construction.
+\begin{lstlisting}
+Definition prepare_stage_child_non_last :=
+  forall tr i n v b, protocol_trace tr ->
+    In n participants ->
+    prepare_stage_in_view (fst (tr i) n) v b ->
+    (exists b_child,
+      parent_of b_child = b /\
+      prepare_stage_in_view (fst (tr i) n) v b_child) ->
+    not last_block b.
+\end{lstlisting}
+
+\noindent
+We then use these four key properties to prove all cases of Precommit stage safety. 
+\begin{lstlisting}
+Lemma precommit_height_injective_symmetric :
+  prepare_stage_first_parent_highest_or_second_global ->
+  prepare_stage_height_view_morphism_global ->
+  prepare_stage_height_view_morphism_global_non_last ->
+  prepare_stage_child_non_last ->
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (i : nat) (n m : node),
+      In n participants ->
+      In m participants ->
+      forall (b1 b2 : block),
+        b1 <> b2 ->
+        precommit_stage_now tr i n b1 ->
+        precommit_stage_now tr i m b2 ->
+        b_height b1 = b_height b2 ->
+        False.
+\end{lstlisting}
+
+Without loss of generality, assume that \CoqIn{b_1} reached Prepare stage before \CoqIn{b_2}. We proceed by contradiction on the existence of a child block for \CoqIn{b_1}. Non-last Prepare stage block heights strictly increase as view increases. For there to exist another block in a different view of the same height as \CoqIn{b_1}, it must be the case that \CoqIn{b_1} is the highest block of its view, and that view change occurred via timeout, whereby the next block was produced based on \CoqIn{b_1}'s parent block. Consequently, \CoqIn{b_1} will never have a child block. By assumption, \CoqIn{b_1} has a child block (that is in Prepare stage), which gives us a contradiction.
+
+\subsection{Commit stage height injectivity}
+A block is in commit stage in some local state iff it and its child block are both in Precommit stage.
+\begin{lstlisting}
+Definition commit_stage (tr : GTrace) (i : nat) (n : node) (b : block) :=
+  exists b_child, parent_of b_child = b /\
+    precommit_stage tr i n b /\ 
+    precommit_stage tr i n b_child.
+\end{lstlisting}
+The final proof of Commit stage safety is straightforward: we can derive Precommit stage from Commit stage by definition, and directly apply Precommit stage safety. 
+\begin{lstlisting}
+Definition commit_height_injective_statement :=
+  forall (tr : GTrace), protocol_trace tr ->
+    forall (i : nat) (n m : node),
+      In n participants ->
+      In m participants ->
+      forall (b1 b2 : block),
+        b1 <> b2 -> 
+        commit_stage tr i n b1 ->
+        commit_stage tr i m b2 -> 
+        b_height b1 = b_height b2 ->
+        False. 
+\end{lstlisting}
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented an abstract model of the Giskard protocol and its encoding into the Coq proof assistant, along with formal proofs of key safety properties of Giskard.
+%
+We believe our model accurately captures the \emph{safety} properties of Giskard, and can serve as a guide for implementation and testing of Giskard. However, additional work is required to model and prove \emph{liveness} properties of Giskard. Deriving a verified implementation by refining our model to executable code is another possible avenue of future work, and would also increase confidence in the adequacy of our model of Giskard.
+
+Our formalization of Giskard consists of around 1800 lines of specifications in Coq's Gallina language and around 3400 lines of proof scripts, and is compatible with Coq version 8.12~\cite{Coq812}. The code is publicly available~\cite{CoqGiskard}.
+
+\bibliographystyle{ieeetr}
+\bibliography{bib}
+
+\end{document}

@@ -1,0 +1,33 @@
+opam-version: "2.0"
+maintainer: "palmskog@gmail.com"
+version: "dev"
+
+homepage: "https://github.com/runtimeverification/giskard-verification"
+dev-repo: "git+https://github.com/runtimeverification/giskard-verification.git"
+bug-reports: "https://github.com/runtimeverification/giskard-verification/issues"
+license: "NCSA"
+
+synopsis: "Verified model of the Giskard consensus protocol in Coq"
+description: """
+The Giskard consensus protocol is used to validate transactions and computations
+in the PlatON network. This project provides a model of Giskard in Coq, and formally
+proves several key safety properties of the protocol."""
+
+build: ["dune" "build" "-p" name "-j" jobs]
+depends: [
+  "dune" {>= "2.5"}
+  "coq" {>= "8.10" & < "8.13~"}
+]
+
+tags: [
+  "category:Computer Science/Concurrent Systems and Protocols/Theory of concurrent systems"
+  "keyword:Giskard"
+  "keyword:consensus"
+  "keyword:blockchain"
+  "logpath:Giskard"
+]
+authors: [
+  "Elaine Li"
+  "Karl Palmskog"
+  "Mircea Sebe"
+]
