@@ -35,7 +35,7 @@ Grigore Ro{\c s}u\inst{1}
 \maketitle
 
 \begin{abstract}
-The Giskard consensus protocol is used to validate transactions and computations in the PlatON network. In this paper, we describe a model of Giskard in the Coq proof assistant, and show how several key safety properties of the protocol are encoded and formally proved.
+The Giskard consensus protocol is used to validate transactions and computations in the PlatON network. In this report, we describe a model of Giskard in the Coq proof assistant, and show how several key safety properties of the protocol are encoded and formally proved.
 \end{abstract}
 
 \section{Introduction}
@@ -44,15 +44,15 @@ The PlatON network provides a platform for distributed transactions and computat
 %
 Giskard is a three-phase consensus protocol in the partially synchronous mesh communication model. The protocol is designed to tolerate that up to one third of all participating nodes are Byzantine, i.e., behave adversarially. 
 
-Due to the exponentially many possible protocol scenarios that are possible in a distributed setting with delays and Byzantine faults, traditional techniques for establishing protocol safety, such as testing, are not able to universally guarantee safety properties of Giskard.
+Due to the exponentially many protocol scenarios that are possible in a distributed setting with delays and Byzantine faults, conventional techniques for establishing protocol safety, such as testing, are not able to universally guarantee safety properties of Giskard.
 
-In this paper, we describe a model of Giskard in the Coq proof assistant~\cite{CoqArt}, and how we used the model to state and formally verify several safety properties of Giskard, increasing the trustworthiness of the protocol. More specifically, we state and prove (1) prepare stage height injectivity, (2) precommit stage height injectivity, and (3) commit stage height injectivity. Thanks to the foundational type theory underpinning Coq, we are able to reason symbolically about all possible executions of Giskard, including those where nodes have adversarial behavior.
+In this report, we describe a model of Giskard in the Coq proof assistant~\cite{CoqArt}, and how we used the model to state and formally verify several safety properties of Giskard, increasing the trustworthiness of the protocol. More specifically, we state and prove (1) prepare stage height injectivity, (2) precommit stage height injectivity, and (3) commit stage height injectivity. Thanks to the foundational type theory underpinning Coq, we are able to reason symbolically about all possible executions of Giskard, including those where nodes have adversarial behavior.
 
 \subsection{Scope of Formal Verification}
 Formal verification can only reduce the correctness properties of a model of a system to a set of underlying assumptions. As such, even when a verification process is successful and sound, it is possible that the model may be an incorrect representation of the system, and that the proven properties may be inadequate to capture system correctness. However, Coq and similar proof assistants based on a \emph{small trusted proof-checking kernel} provide strong guarantees about proofs, meaning there is very little doubt in a successful verification process outcome. This is in contrast to less rigorous verification methods which require users to trust large programs and theories that cannot be manually inspected and validated in detail with reasonable effort.
 
 \subsection{Organization and Trusted Base}
-The paper is organized as follows. Section~\ref{sec:background} provides brief background on Giskard and contrasts our verification approach in Coq with others for similar protocols in the literature.
+The report is organized as follows. Section~\ref{sec:background} provides brief background on Giskard and contrasts our verification approach in Coq with others for similar protocols in the literature.
 %
 Section~\ref{sec:encoding} describes the basic data and assumptions (parameters and axioms) that comprise our model of Giskard. These definitions are the substrate for stating and proving the safety properties of the protocol, and must be accepted to trust any verification results about the model. Section~\ref{sec:safety} describes how the correctness properties are encoded and surveys how the properties were proved. Note that besides our custom parameters and axioms, we also use the \emph{law of excluded middle} (\CoqIn{classic}) axiom from Coq's standard library in the formal proofs. Finally, Section~\ref{sec:conclusion} outlines some possible extensions to our Coq model and contextualizes the work.
 
@@ -71,7 +71,7 @@ A rigorous definition of Giskard is available in related work~\cite{GiskardSpec}
 %    \item a block is in commit stage in some local state s iff its child block is in precommit stage in s.
 %\end{itemize}
 
-In Giskard, a block goes through three stages: Prepare, Precommit and Commit. The latter two block stages are defined in terms of its former: a block is in Precommit (respectively, Commit) stage if its parent block is in Prepare (respectively, Precommit) stage. Once a block reaches the Precommit and Commit stage, it is considered \emph{final}. Therefore, consensus in Giskard means that all participating nodes agree on a unique block at each height at the Commit stage. This in turns requires that all participating nodes agree on a unique block at each height at the Precommit stage, which requires that all participating nodes agree on a unique block at each height at the Prepare stage in a single view. In this paper, we focus on stating and proving these three safety properties in Coq.
+In Giskard, a block goes through three stages: Prepare, Precommit and Commit. The latter two block stages are defined in terms of its former: a block is in Precommit (respectively, Commit) stage if its parent block is in Prepare (respectively, Precommit) stage. Once a block reaches the Precommit and Commit stage, it is considered \emph{final}. Therefore, consensus in Giskard means that all participating nodes agree on a unique block at each height at the Commit stage. This in turns requires that all participating nodes agree on a unique block at each height at the Precommit stage, which requires that all participating nodes agree on a unique block at each height at the Prepare stage in a single view. In this report, we focus on stating and proving these three safety properties in Coq.
 
 \subsection{Distributed systems verification in Coq}
 Verification of fault-tolerant distributed systems in Coq have been done in three principal ways.
@@ -82,11 +82,9 @@ Verification of fault-tolerant distributed systems in Coq have been done in thre
 
 \MyPara{Reasoning inductively on transition system relations} This approach is based on explicitly defining a transition system as a relation on global states and directly establishing properties of reachable states by induction. This is what we use here, and was also notably used in the verification of an implementation of the Raft distributed consensus protocol~\cite{Woos2016} in the Verdi framework in Coq~\cite{Wilcox2015}. However, Raft only provides tolerance to regular crash faults, not Byzantine node behavior. 
 
-P{\^{\i}}rlea and Sergey~\cite{Pirlea2018} modeled a generic blockchain system in Coq and prove agreement on a canonical blockchain for a system in quiescence, while abstracting from most consensus mechanism details. Closest to our work is the verified Coq model of the Algorand consensus protocol by Alturki et al.~\cite{Alturki2020}, which similarly abstracts from details on blocks and blockchains and captures adversarial behavior. However, the Algorand consensus protocol and Giskard use widely different assumptions on network behavior and message delivery, making the respective Coq models essentially incomparable.
+P{\^{\i}}rlea and Sergey~\cite{Pirlea2018} modeled a generic blockchain system in Coq and prove agreement on a canonical blockchain for a system in quiescence, while abstracting from most consensus mechanism details. Closest to our work is the verified Coq model of the Algorand consensus protocol by Alturki et al.~\cite{Alturki2020}, which similarly to here abstracts from details on blocks and blockchains and captures adversarial behavior. However, the Algorand consensus protocol and Giskard use widely different assumptions on network behavior and message delivery, making the respective Coq models essentially incomparable.
 
-In a similar setting to ours, Alturki et al.~\cite{Gasper} proved correct in Coq a \emph{finality} mechanism for the Ethereum blockchain. Most recently, Thomsen and Spitters~\cite{Thomsen2020} verified safety and liveness properties in Coq of a model of a Nakamoto-style blockchain based on proof-of-stake which abstracts from details of the consensus mechanism.
-
-
+In a similar setting to ours, Alturki et al.~\cite{Gasper} proved correct in Coq a \emph{finality} mechanism for the Ethereum blockchain. Most recently, Thomsen and Spitters~\cite{Thomsen2020} verified both safety and liveness properties in Coq of a model of a Nakamoto-style blockchain based on proof-of-stake which abstracts from details of the consensus mechanism.
 
 \section{Protocol Model and Coq Encoding}
 \label{sec:encoding}
@@ -94,8 +92,8 @@ In this section, we outline our model of Giskard and its Coq encoding. We design
 %Rather, it selectively incorporates features of Giskard that are critical to consensus safety, and excludes or abstracts away the rest. 
 %However, it benefits from the flexibility offered by abstraction techniques in that it can be easily enriched to incorporate additional Giskard features, that may be relevant to other properties, such as liveness and communication efficiency. 
 
-\subsection{Basic Datatypes and Assumptions}
-In this section, we present the basic datatypes of Giskard, which we call \emph{parameters}, and their accompanying assumptions, which we call \emph{axioms}. Declaration of global parameters and axioms (using the synonymous keywords \CoqIn{Parameter} and \CoqIn{Axiom}) is a common and convenient abstraction mechanism in Coq. We use this mechanism to avoid specifying unnecessary details that are best left to an implementation of Giskard. However, there is no general guarantee in Coq that parameters and axioms can be instantiated. Hence, we have chosen a minimal set which we are confident can be instantiated with only modest effort. We also highlight some derived datatypes, such as messages and node state.
+\subsection{Datatypes and Assumptions}
+We begin by presenting the basic datatypes of Giskard, which we call \emph{parameters}, and their accompanying assumptions, which we call \emph{axioms}. Declaration of global parameters and axioms (using the synonymous keywords \CoqIn{Parameter} and \CoqIn{Axiom}) is a common and convenient abstraction mechanism in Coq. We use this mechanism to avoid specifying unnecessary details that are best left to an implementation of Giskard. However, there is no general guarantee in Coq that parameters and axioms can be instantiated. Hence, we have chosen a minimal set which we are confident can be instantiated with only modest effort. We also highlight some \emph{derived} datatypes, such as messages and node state.
 
 \subsubsection{Participating nodes} 
 A static set of nodes participate in each round in Giskard, and perform actions such as proposing blocks, voting on blocks, broadcasting messages and requesting messages.
@@ -192,7 +190,7 @@ Axiom about_generate_last_block : forall b, b_last (generate_last_block b) = tru
 Axiom about_non_last_block : forall b, b_last (generate_new_block b) = false.
 \end{lstlisting} 
 
-\subsection{Messages}
+\subsubsection{Messages}
 We use a Coq inductive type to the define the five Giskard message types.
 \begin{lstlisting}[language=Coq]
 Inductive message_type := 
@@ -207,7 +205,7 @@ According to this definition, a Giskard message consists of a message type (\Coq
 
 While all Giskard protocol messages contain at least one block, some contain additional information in the form of aggregated signatures of other messages. The signature effectively stands in for the messages themselves: if a node receives a message $m$ containing an aggregated signature $sig$ created using a set of message signatures $\{sig_{m_1}, sig_{m_2}, ..., sig_{m_n}\}$, the node behaves as though it has received the set of messages $\{m, m_1, m_2, ..., m_n\}$. We include an additional message field to model this ``message carrying'' behavior without explicitly resorting to, e.g., recursive message definitions to model messages containing other messages.
 
-\subsection{Local states}
+\subsubsection{Local states}
 We define a record type \CoqIn{NState} that contains all the data available to a protocol participant during execution. 
 \begin{lstlisting}[language=Coq]
 Record NState := mkNState { node_view : nat; node_id : node; 
