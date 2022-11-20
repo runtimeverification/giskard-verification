@@ -1027,8 +1027,8 @@ Definition get_transition (t : NState_transition_type) : (NState -> message -> N
   | process_ViewChange_quorum_new_proposer_type => process_ViewChange_quorum_new_proposer
   | process_ViewChange_pre_quorum_type => process_ViewChange_pre_quorum
   | process_ViewChangeQC_single_type => process_ViewChangeQC_single
-  | process_PrepareBlock_malicious_PrepareVote_type => process_PrepareBlock_malicious_vote
-  end.    
+  | process_PrepareBlock_malicious_vote_type => process_PrepareBlock_malicious_vote
+  end.
 
 (** ** Facts about local state transitions *)
 
