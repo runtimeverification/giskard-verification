@@ -1,9 +1,12 @@
 # Giskard Verification
 
-[![CI][action-shield]][action-link]
+[![Docker CI][docker-action-shield]][docker-action-link]
 
-[action-shield]: https://github.com/runtimeverification/giskard-verification/workflows/CI/badge.svg?branch=master
-[action-link]: https://github.com/runtimeverification/giskard-verification/actions?query=workflow%3ACI
+[docker-action-shield]: https://github.com/runtimeverification/giskard-verification/workflows/Docker%20CI/badge.svg?branch=master
+[docker-action-link]: https://github.com/runtimeverification/giskard-verification/actions?query=workflow:"Docker%20CI"
+
+
+
 
 The Giskard consensus protocol is used to validate transactions and computations
 in the PlatON network. This project provides a model of Giskard in Coq, and formally
@@ -12,14 +15,14 @@ proves several key safety properties of the protocol.
 ## Meta
 
 - License: [University of Illinois/NCSA Open Source License](LICENSE.md)
-- Compatible Coq versions: 8.12
+- Compatible Coq versions: 8.10 or later
 - Coq namespace: `Giskard`
 
 ## Building instructions
 
-We recommend installing Coq 8.12 via [OPAM](http://opam.ocaml.org/doc/Install.html):
+We recommend installing Coq 8.16 via [OPAM](http://opam.ocaml.org/doc/Install.html):
 ```shell
-opam install coq.8.12.0
+opam install coq.8.16.0
 ```
 When Coq is installed, use the following commands to obtain and build the project:
 ```shell

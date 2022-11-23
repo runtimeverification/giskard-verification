@@ -503,9 +503,9 @@ Proof.
     apply andb_prop in H_rest2.
     destruct H_rest2 as [H_type2 H_view2].
     apply andb_prop in H_type2.
-    destruct H_type2 as [H_type2 H_block2]. 
-    apply beq_nat_true in H_view1.
-    apply beq_nat_true in H_view2.
+    destruct H_type2 as [H_type2 H_block2].
+    apply Nat.eqb_eq in H_view1.
+    apply Nat.eqb_eq in H_view2.
     apply message_type_eqb_correct in H_type1.
     apply message_type_eqb_correct in H_type2.
     apply block_eqb_correct in H_block1.

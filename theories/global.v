@@ -238,7 +238,7 @@ Proof.
   - destruct H_prot as [H_init _];
       inversion H_le.
     rewrite H_init. reflexivity.
-  - apply le_lt_or_eq in H_le.
+  - apply Nat.lt_eq_cases in H_le.
     destruct H_le as [H_lt | H_eq].
     + spec IH_prot. lia.
       destruct (view_state_morphism_inductive_step H_prot i2 n H_part) as [H_eq | H_eq_S];

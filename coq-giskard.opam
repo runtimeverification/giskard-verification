@@ -16,7 +16,7 @@ proves several key safety properties of the protocol."""
 build: ["dune" "build" "-p" name "-j" jobs]
 depends: [
   "dune" {>= "2.5"}
-  "coq" {>= "8.10" & < "8.13~"}
+  "coq" {>= "8.10"}
 ]
 
 tags: [
