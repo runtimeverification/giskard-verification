@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="config.js"></script>
+<script type="text/javascript" src="coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="./../../..">Project Website</a>
+      <a href="./indexpage.html">Index</a>
+      <a href="./toc.html">Table of Contents</a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Arith.Arith.html#"><span class="id" title="library">Arith</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Bool.Bool.html#"><span class="id" title="library">Bool</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Lists.List.html#"><span class="id" title="library">List</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Giskard</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Giskard.lib.html#"><span class="id" title="library">lib</span></a> <a class="idref" href="Giskard.structures.html#"><span class="id" title="library">structures</span></a> <a class="idref" href="Giskard.local.html#"><span class="id" title="library">local</span></a> <a class="idref" href="Giskard.global.html#"><span class="id" title="library">global</span></a> <a class="idref" href="Giskard.prepare.html#"><span class="id" title="library">prepare</span></a> <a class="idref" href="Giskard.precommit.html#"><span class="id" title="library">precommit</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Lists.List.html#ListNotations"><span class="id" title="module">ListNotations</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab51"></a><h1 class="section">Safety property three: Commit stage height injectivity</h1>
+
+<div class="paragraph"> </div>
+
+<a id="lab52"></a><h2 class="section">Commit stage definition</h2>
+
+<div class="paragraph"> </div>
+
+ We say that a block is in commit stage in some local state iff it is in precommit stage
+and its child block is in precommit stage. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Definition</span> <a id="commit_stage" class="idref" href="#commit_stage"><span class="id" title="definition">commit_stage</span></a> (<a id="tr:1" class="idref" href="#tr:1"><span class="id" title="binder">tr</span></a> : <a class="idref" href="Giskard.global.html#GTrace"><span class="id" title="definition">GTrace</span></a>) (<a id="i:2" class="idref" href="#i:2"><span class="id" title="binder">i</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) (<a id="n:3" class="idref" href="#n:3"><span class="id" title="binder">n</span></a> : <a class="idref" href="Giskard.structures.html#node"><span class="id" title="axiom">node</span></a>) (<a id="b:4" class="idref" href="#b:4"><span class="id" title="binder">b</span></a> : <a class="idref" href="Giskard.structures.html#block"><span class="id" title="axiom">block</span></a>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <a id="b_child:5" class="idref" href="#b_child:5"><span class="id" title="binder">b_child</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Giskard.structures.html#parent_of"><span class="id" title="axiom">parent_of</span></a> <a class="idref" href="Giskard.commit.html#b_child:5"><span class="id" title="variable">b_child</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Giskard.commit.html#b:4"><span class="id" title="variable">b</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Giskard.precommit.html#precommit_stage"><span class="id" title="definition">precommit_stage</span></a> <a class="idref" href="Giskard.commit.html#tr:1"><span class="id" title="variable">tr</span></a> <a class="idref" href="Giskard.commit.html#i:2"><span class="id" title="variable">i</span></a> <a class="idref" href="Giskard.commit.html#n:3"><span class="id" title="variable">n</span></a> <a class="idref" href="Giskard.commit.html#b:4"><span class="id" title="variable">b</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Giskard.precommit.html#precommit_stage"><span class="id" title="definition">precommit_stage</span></a> <a class="idref" href="Giskard.commit.html#tr:1"><span class="id" title="variable">tr</span></a> <a class="idref" href="Giskard.commit.html#i:2"><span class="id" title="variable">i</span></a> <a class="idref" href="Giskard.commit.html#n:3"><span class="id" title="variable">n</span></a> <a class="idref" href="Giskard.commit.html#b_child:5"><span class="id" title="variable">b_child</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab53"></a><h2 class="section">Commit stage height injectivity statement</h2>
+
+<div class="paragraph"> </div>
+
+ The third and final safety property states that no two same height blocks can be at
+commit stage, i.e., commit stage block height is injective. 
+<div class="paragraph"> </div>
+
+ In any global state <code>i</code> in a valid protocol trace <code>tr</code> that begins with the
+initial state and respects the protocol transition rules, if there are two participating
+nodes <code>n</code> and <code>m</code>, and two distinct blocks <code>b1</code> and <code>b2</code> of the same height
+that are both at precommit stage for <code>n</code> and <code>m</code>'s local state, respectively,
+then we can prove a contradiction. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="commit_height_injective_statement" class="idref" href="#commit_height_injective_statement"><span class="id" title="definition">commit_height_injective_statement</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<a id="tr:6" class="idref" href="#tr:6"><span class="id" title="binder">tr</span></a> : <a class="idref" href="Giskard.global.html#GTrace"><span class="id" title="definition">GTrace</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Giskard.global.html#protocol_trace"><span class="id" title="definition">protocol_trace</span></a> <a class="idref" href="Giskard.commit.html#tr:6"><span class="id" title="variable">tr</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<a id="i:7" class="idref" href="#i:7"><span class="id" title="binder">i</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) (<a id="n:8" class="idref" href="#n:8"><span class="id" title="binder">n</span></a> <a id="m:9" class="idref" href="#m:9"><span class="id" title="binder">m</span></a> : <a class="idref" href="Giskard.structures.html#node"><span class="id" title="axiom">node</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Lists.List.html#In"><span class="id" title="definition">In</span></a> <a class="idref" href="Giskard.commit.html#n:8"><span class="id" title="variable">n</span></a> <a class="idref" href="Giskard.structures.html#participants"><span class="id" title="axiom">participants</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Lists.List.html#In"><span class="id" title="definition">In</span></a> <a class="idref" href="Giskard.commit.html#m:9"><span class="id" title="variable">m</span></a> <a class="idref" href="Giskard.structures.html#participants"><span class="id" title="axiom">participants</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<a id="b1:10" class="idref" href="#b1:10"><span class="id" title="binder">b1</span></a> <a id="b2:11" class="idref" href="#b2:11"><span class="id" title="binder">b2</span></a> : <a class="idref" href="Giskard.structures.html#block"><span class="id" title="axiom">block</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Giskard.commit.html#b1:10"><span class="id" title="variable">b1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'&lt;&gt;'_x"><span class="id" title="notation">&lt;&gt;</span></a> <a class="idref" href="Giskard.commit.html#b2:11"><span class="id" title="variable">b2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Giskard.commit.html#commit_stage"><span class="id" title="definition">commit_stage</span></a> <a class="idref" href="Giskard.commit.html#tr:6"><span class="id" title="variable">tr</span></a> <a class="idref" href="Giskard.commit.html#i:7"><span class="id" title="variable">i</span></a> <a class="idref" href="Giskard.commit.html#n:8"><span class="id" title="variable">n</span></a> <a class="idref" href="Giskard.commit.html#b1:10"><span class="id" title="variable">b1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Giskard.commit.html#commit_stage"><span class="id" title="definition">commit_stage</span></a> <a class="idref" href="Giskard.commit.html#tr:6"><span class="id" title="variable">tr</span></a> <a class="idref" href="Giskard.commit.html#i:7"><span class="id" title="variable">i</span></a> <a class="idref" href="Giskard.commit.html#m:9"><span class="id" title="variable">m</span></a> <a class="idref" href="Giskard.commit.html#b2:11"><span class="id" title="variable">b2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Giskard.structures.html#b_height"><span class="id" title="axiom">b_height</span></a> <a class="idref" href="Giskard.commit.html#b1:10"><span class="id" title="variable">b1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="Giskard.structures.html#b_height"><span class="id" title="axiom">b_height</span></a> <a class="idref" href="Giskard.commit.html#b2:11"><span class="id" title="variable">b2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab54"></a><h2 class="section">Proof of commit stage height injectivity</h2>
+
+<div class="paragraph"> </div>
+
+ Intuition behind the proof: From the definition of commit stage, we know that each
+block must also be in precommit stage. Because the two blocks are of equal height and
+different, their respective children must also be of equal height and different.
+We then apply precommit stage height injectivity to directly obtain a contradiction. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Theorem</span> <a id="commit_height_injective" class="idref" href="#commit_height_injective"><span class="id" title="lemma">commit_height_injective</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Giskard.precommit.html#precommit_stage_height_injective_statement"><span class="id" title="definition">precommit_stage_height_injective_statement</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="Giskard.commit.html#commit_height_injective_statement"><span class="id" title="definition">commit_height_injective_statement</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">H_precommit</span> <span class="id" title="var">tr</span> <span class="id" title="var">H_prot</span> <span class="id" title="var">i</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">H_part_n</span> <span class="id" title="var">H_part_m</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span> <span class="id" title="var">H_neq</span> <span class="id" title="var">H_commit1</span> <span class="id" title="var">H_commit2</span> <span class="id" title="var">H_height</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H_commit1</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">b_child1</span> [<span class="id" title="var">H_parent1</span> [<span class="id" title="var">H_precommit1</span> <span class="id" title="var">_</span>]]].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H_commit2</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">b_child2</span> [<span class="id" title="var">H_parent2</span> [<span class="id" title="var">H_precommit2</span> <span class="id" title="var">_</span>]]].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">red</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H_precommit</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">spec</span> <span class="id" title="var">H_precommit</span> <span class="id" title="var">tr</span> <span class="id" title="var">H_prot</span> <span class="id" title="var">i</span> <span class="id" title="var">n</span> <span class="id" title="var">m</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">spec</span> <span class="id" title="var">H_precommit</span> <span class="id" title="var">H_part_n</span> <span class="id" title="var">H_part_m</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">spec</span> <span class="id" title="var">H_precommit</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intro</span> <span class="id" title="var">H_false</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">subst</span>. <span class="id" title="var">contradiction</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">spec</span> <span class="id" title="var">H_precommit</span> <span class="id" title="var">H_precommit1</span> <span class="id" title="var">H_precommit2</span> <span class="id" title="var">H_height</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">inversion</span> <span class="id" title="var">H_precommit</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr">coqdoc</a> and improved with <a href="https://github.com/palmskog/coqdocjs">CoqdocJS</a> as adapted for <a href="https://github.com/coq-community">coq-community</a>
+</div>
+</div>
+</body>
+
+</html>

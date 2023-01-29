@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="coqdocjs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="config.js"></script>
+<script type="text/javascript" src="coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a href="./../../..">Project Website</a>
+      <a href="./indexpage.html">Index</a>
+      <a href="./toc.html">Table of Contents</a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<div id="toc">
+<ul class="doclist">
+<li><a href="Giskard.lib.html#lab1">Supplementary general tactics and results</a>
+
+</li>
+<li><a href="Giskard.structures.html#lab2">Definitions of Giskard datatypes</a>
+<ul class="doclist">
+<li><a href="Giskard.structures.html#lab3">Blocks</a>
+
+</li>
+<li><a href="Giskard.structures.html#lab4">Parent relation</a>
+
+</li>
+<li><a href="Giskard.structures.html#lab5">Nodes</a>
+
+</li>
+<li><a href="Giskard.structures.html#lab6">Quorums</a>
+
+</li>
+<li><a href="Giskard.structures.html#lab7">Messages</a>
+
+</li>
+<li><a href="Giskard.structures.html#lab8">Node state</a>
+
+</li>
+<li><a href="Giskard.structures.html#lab9">Supplementary definitions</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.local.html#lab10">Local state operations, properties, and transitions</a>
+<ul class="doclist">
+<li><a href="Giskard.local.html#lab11">Local state operations</a>
+
+</li>
+<li><a href="Giskard.local.html#lab12">Local state properties</a>
+<ul class="doclist">
+<li><a href="Giskard.local.html#lab13">Byzantine behavior</a>
+
+</li>
+<li><a href="Giskard.local.html#lab14">Prepare stage definitions</a>
+
+</li>
+<li><a href="Giskard.local.html#lab15">View change definitions</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.local.html#lab16">Message construction</a>
+
+</li>
+<li><a href="Giskard.local.html#lab17">Local state transitions</a>
+<ul class="doclist">
+<li><a href="Giskard.local.html#lab18">Message type-agnostic actions</a>
+
+</li>
+<li><a href="Giskard.local.html#lab19">PrepareBlock message-related actions</a>
+
+</li>
+<li><a href="Giskard.local.html#lab20">PrepareVote message-related actions</a>
+
+</li>
+<li><a href="Giskard.local.html#lab21">PrepareQC message-related actions</a>
+
+</li>
+<li><a href="Giskard.local.html#lab22">ViewChange message-related actions</a>
+
+</li>
+<li><a href="Giskard.local.html#lab23">ViewChangeQC message-related actions</a>
+
+</li>
+<li><a href="Giskard.local.html#lab24">Timeout</a>
+
+</li>
+<li><a href="Giskard.local.html#lab25">Malicious node actions</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.local.html#lab26">Protocol transition type definitions</a>
+
+</li>
+<li><a href="Giskard.local.html#lab27">Facts about local state transitions</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.global.html#lab28">Global state operations, transitions and properties</a>
+<ul class="doclist">
+<li><a href="Giskard.global.html#lab29">Global state definitions</a>
+
+</li>
+<li><a href="Giskard.global.html#lab30">Global state transitions</a>
+
+</li>
+<li><a href="Giskard.global.html#lab31">Protocol state definitions</a>
+
+</li>
+<li><a href="Giskard.global.html#lab32">Facts about protocol states and traces</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.prepare.html#lab33">Safety property one: Prepare stage height injectivity</a>
+<ul class="doclist">
+<li><a href="Giskard.prepare.html#lab34">Prepare stage height injectivity definition</a>
+
+</li>
+<li><a href="Giskard.prepare.html#lab35">Reducing the proof</a>
+
+</li>
+<li><a href="Giskard.prepare.html#lab36">Proof of prepare stage height injectivity</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.precommit.html#lab37">Safety property two: Precommit stage height injectivity</a>
+<ul class="doclist">
+<li><a href="Giskard.precommit.html#lab38">Precommit stage definition</a>
+
+</li>
+<li><a href="Giskard.precommit.html#lab39">Precommit stage height injectivity statement</a>
+
+</li>
+<li><a href="Giskard.precommit.html#lab40">Reducing the proof</a>
+
+</li>
+<li><a href="Giskard.precommit.html#lab41">Global trigger message blocks as lower bounds</a>
+<ul class="doclist">
+<li><a href="Giskard.precommit.html#lab42">Ingredient one: All blocks that reach prepare stage in some view must have a PrepareBlock message in the global message buffer in that view.</a>
+
+</li>
+<li><a href="Giskard.precommit.html#lab43">Ingredient two: The piggyback block of PrepareBlock messages in some view is equal to the trigger message block from the previous view.</a>
+
+</li>
+<li><a href="Giskard.precommit.html#lab44">Ingredient three: All PrepareBlock messages have a lower piggyback block than proposed block</a>
+
+</li>
+<li><a href="Giskard.precommit.html#lab45">Proof of the lower bound</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.precommit.html#lab46">Global trigger message blocks as upper bounds</a>
+<ul class="doclist">
+<li><a href="Giskard.precommit.html#lab47">Normal view change trigger message contains the highest block</a>
+
+</li>
+<li><a href="Giskard.precommit.html#lab48">Timeout trigger message contains highest or second highest block</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.precommit.html#lab49">Global trigger message blocks increase with view</a>
+
+</li>
+<li><a href="Giskard.precommit.html#lab50">Final cases of precommit stage height injectivity</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="Giskard.commit.html#lab51">Safety property three: Commit stage height injectivity</a>
+<ul class="doclist">
+<li><a href="Giskard.commit.html#lab52">Commit stage definition</a>
+
+</li>
+<li><a href="Giskard.commit.html#lab53">Commit stage height injectivity statement</a>
+
+</li>
+<li><a href="Giskard.commit.html#lab54">Proof of commit stage height injectivity</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr">coqdoc</a> and improved with <a href="https://github.com/palmskog/coqdocjs">CoqdocJS</a> as adapted for <a href="https://github.com/coq-community">coq-community</a>
+</div>
+</div>
+</body>
+
+</html>
